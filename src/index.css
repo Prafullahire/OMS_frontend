@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-orange-50/30 text-gray-800 font-sans;
+    }
+
+    /* Ensure proper box-sizing */
+    * {
+        box-sizing: border-box;
+    }
+
+    /* Prevent horizontal scroll on mobile */
+    html,
+    body {
+        overflow-x: hidden;
+        width: 100%;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 active:bg-orange-700 transition-colors duration-200 font-medium shadow-sm hover:shadow-orange-500/20;
+    }
+
+    .btn-outline {
+        @apply px-4 py-2 bg-white text-orange-600 border border-orange-200 rounded-lg hover:bg-orange-50 transition-colors duration-200 font-medium;
+    }
+
+    .input-field {
+        @apply w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 outline-none transition-all duration-200 bg-white;
+    }
+
+    .card {
+        @apply bg-white rounded-xl shadow-sm border border-gray-100;
+    }
+
+    /* Mobile-friendly table wrapper */
+    .table-responsive {
+        @apply overflow-x-auto -mx-4 sm:mx-0;
+    }
+
+    /* Animations */
+    .animate-fadeIn {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .animate-scaleIn {
+        animation: scaleIn 0.2s ease-out;
+    }
+}
+
+@layer utilities {
+
+    /* Custom animations */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* Mobile-specific utilities */
+    .touch-manipulation {
+        touch-action: manipulation;
+    }
+
+    /* Prevent text selection on buttons */
+    .no-select {
+        -webkit-user-select: none;
+        user-select: none;
+    }
+}
+
+/* Mobile-specific fixes */
+@media (max-width: 640px) {
+
+    /* Smaller padding on mobile */
+    .container {
+        @apply px-3;
+    }
+
+    /* Stack buttons vertically on mobile */
+    .btn-group-mobile {
+        @apply flex flex-col gap-2;
+    }
+
+    /* Smaller text on mobile */
+    h1 {
+        @apply text-2xl;
+    }
+
+    h2 {
+        @apply text-xl;
+    }
+}
+
+/* Tablet-specific adjustments */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .sidebar-tablet {
+        @apply w-20;
+    }
+}
