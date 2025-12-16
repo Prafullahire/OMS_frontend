@@ -16,7 +16,10 @@ import {
   X,
   Users,
   Truck,
+
   Menu,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -40,6 +43,11 @@ const AdminDashboard = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [warehouse, setWarehouse] = useState("");
   const [selectedDeliveryBoy, setSelectedDeliveryBoy] = useState("");
+
+  // Pagination State
+  const [recentOrdersPage, setRecentOrdersPage] = useState(1);
+  const [productsPage, setProductsPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   // Form State
   const [formData, setFormData] = useState({
@@ -137,9 +145,9 @@ const AdminDashboard = () => {
       console.error(error);
       toast.error(
         error.response?.data?.message ||
-          (editingProduct
-            ? "Failed to update product"
-            : "Failed to create product"),
+        (editingProduct
+          ? "Failed to update product"
+          : "Failed to create product"),
         {
           position: "top-right",
           autoClose: 4000,
@@ -284,9 +292,8 @@ const AdminDashboard = () => {
     };
     return (
       <span
-        className={`px-2 py-1 rounded-full text-xs font-semibold ${
-          colors[status] || "bg-gray-100"
-        }`}
+        className={`px-2 py-1 rounded-full text-xs font-semibold ${colors[status] || "bg-gray-100"
+          }`}
       >
         {status}
       </span>
@@ -627,81 +634,126 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {orders.slice(0, 10).map((order) => (
-                      <tr
-                        key={order._id}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="py-3 px-4 font-mono text-xs text-gray-500">
-                          #{order._id.substring(0, 8)}
-                        </td>
-                        <td className="py-3 px-4 text-sm font-medium text-gray-900 flex flex-col">
-                          <span>{order.user?.name || "Unknown"}</span>
-                        </td>
-                        <td className="py-3 px-4 text-sm text-gray-500">
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="py-3 px-4 text-xs">
-                          {order.warehouse ? (
-                            <div className="flex flex-col">
-                              <span className="font-semibold text-gray-700">
-                                {order.warehouse}
+                    {orders
+                      .slice(
+                        (recentOrdersPage - 1) * ITEMS_PER_PAGE,
+                        recentOrdersPage * ITEMS_PER_PAGE
+                      )
+                      .map((order) => (
+                        <tr
+                          key={order._id}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="py-3 px-4 font-mono text-xs text-gray-500">
+                            #{order._id.substring(0, 8)}
+                          </td>
+                          <td className="py-3 px-4 text-sm font-medium text-gray-900 flex flex-col">
+                            <span>{order.user?.name || "Unknown"}</span>
+                          </td>
+                          <td className="py-3 px-4 text-sm text-gray-500">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="py-3 px-4 text-xs">
+                            {order.warehouse ? (
+                              <div className="flex flex-col">
+                                <span className="font-semibold text-gray-700">
+                                  {order.warehouse}
+                                </span>
+                                <span className="text-gray-500">
+                                  DB:{" "}
+                                  {users.find(
+                                    (u) => u._id === order.deliveryBoy
+                                  )?.name || "Assigned"}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 italic">
+                                Not Assigned
                               </span>
-                              <span className="text-gray-500">
-                                DB:{" "}
-                                {users.find((u) => u._id === order.deliveryBoy)
-                                  ?.name || "Assigned"}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-gray-400 italic">
-                              Not Assigned
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4">
-                          <StatusBadge status={order.status} />
-                        </td>
-                        <td className="py-3 px-4 text-sm font-bold text-gray-900">
-                          ${order.totalPrice}
-                        </td>
-                        <td className="py-3 px-4">
-                          {order.status === "Pending" ||
-                          order.status === "Processing" ? (
-                            <button
-                              onClick={() => openLogisticsModal(order)}
-                              className="flex items-center px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded hover:bg-orange-200 transition-colors"
-                            >
-                              <Truck className="w-3 h-3 mr-1" />
-                              Book Pickup
-                            </button>
-                          ) : (
-                            <select
-                              className="px-2 py-1 bg-white border border-gray-200 rounded text-xs text-gray-600 focus:outline-none focus:border-orange-500 cursor-pointer"
-                              value={order.status}
-                              onChange={(e) =>
-                                handleStatusUpdate(order._id, e.target.value)
-                              }
-                            >
-                              <option value="ReadyForPickup">
-                                Ready For Pickup
-                              </option>
-                              <option value="PickedUp">Picked Up</option>
-                              <option value="OutForDelivery">
-                                Out For Delivery
-                              </option>
-                              <option value="Delivered">Delivered</option>
-                              <option value="Cancelled">Cancelled</option>
-                            </select>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                            )}
+                          </td>
+                          <td className="py-3 px-4">
+                            <StatusBadge status={order.status} />
+                          </td>
+                          <td className="py-3 px-4 text-sm font-bold text-gray-900">
+                            ${order.totalPrice}
+                          </td>
+                          <td className="py-3 px-4">
+                            {order.status === "Pending" ||
+                              order.status === "Processing" ? (
+                              <button
+                                onClick={() => openLogisticsModal(order)}
+                                className="flex items-center px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded hover:bg-orange-200 transition-colors"
+                              >
+                                <Truck className="w-3 h-3 mr-1" />
+                                Book Pickup
+                              </button>
+                            ) : (
+                              <select
+                                className="px-2 py-1 bg-white border border-gray-200 rounded text-xs text-gray-600 focus:outline-none focus:border-orange-500 cursor-pointer"
+                                value={order.status}
+                                onChange={(e) =>
+                                  handleStatusUpdate(order._id, e.target.value)
+                                }
+                              >
+                                <option value="ReadyForPickup">
+                                  Ready For Pickup
+                                </option>
+                                <option value="PickedUp">Picked Up</option>
+                                <option value="OutForDelivery">
+                                  Out For Delivery
+                                </option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="Cancelled">Cancelled</option>
+                              </select>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
-              {orders.length === 0 && (
+              {orders.length === 0 ? (
                 <p className="text-center text-gray-400 py-8">No orders yet.</p>
+              ) : (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-gray-500">
+                    Showing{" "}
+                    {(recentOrdersPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
+                    {Math.min(
+                      recentOrdersPage * ITEMS_PER_PAGE,
+                      orders.length
+                    )}{" "}
+                    of {orders.length} orders
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        setRecentOrdersPage((p) => Math.max(1, p - 1))
+                      }
+                      disabled={recentOrdersPage === 1}
+                      className="p-1 px-2 border rounded hover:bg-gray-100 disabled:opacity-50"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <span className="px-2 py-1 text-sm font-medium">
+                      Page {recentOrdersPage}
+                    </span>
+                    <button
+                      onClick={() =>
+                        setRecentOrdersPage((p) =>
+                          (p * ITEMS_PER_PAGE < orders.length) ? p + 1 : p
+                        )
+                      }
+                      disabled={
+                        recentOrdersPage * ITEMS_PER_PAGE >= orders.length
+                      }
+                      className="p-1 px-2 border rounded hover:bg-gray-100 disabled:opacity-50"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -911,79 +963,84 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {products.map((p) => (
-                    <tr
-                      key={p._id}
-                      className="hover:bg-orange-50/30 transition-colors"
-                    >
-                      <td className="py-4 px-6">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 rounded bg-gray-100 flex-shrink-0 overflow-hidden mr-3 relative">
-                            {p.imageUrl || p.image ? (
-                              <img
-                                src={getImageUrl(p.imageUrl || p.image)}
-                                alt={p.name}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.target.style.display = "none";
-                                  e.target.nextSibling.style.display = "flex";
+                  {products
+                    .slice(
+                      (productsPage - 1) * ITEMS_PER_PAGE,
+                      productsPage * ITEMS_PER_PAGE
+                    )
+                    .map((p) => (
+                      <tr
+                        key={p._id}
+                        className="hover:bg-orange-50/30 transition-colors"
+                      >
+                        <td className="py-4 px-6">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 rounded bg-gray-100 flex-shrink-0 overflow-hidden mr-3 relative">
+                              {p.imageUrl || p.image ? (
+                                <img
+                                  src={getImageUrl(p.imageUrl || p.image)}
+                                  alt={p.name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.target.style.display = "none";
+                                    e.target.nextSibling.style.display =
+                                      "flex";
+                                  }}
+                                />
+                              ) : null}
+                              <Box
+                                className="w-full h-full p-2 text-gray-400"
+                                style={{
+                                  display:
+                                    p.imageUrl || p.image ? "none" : "flex",
                                 }}
                               />
-                            ) : null}
-                            <Box
-                              className="w-full h-full p-2 text-gray-400"
-                              style={{
-                                display:
-                                  p.imageUrl || p.image ? "none" : "flex",
-                              }}
-                            />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {p.name}
+                              </p>
+                              <p className="text-xs text-gray-500 max-w-xs truncate">
+                                {p.description}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {p.name}
-                            </p>
-                            <p className="text-xs text-gray-500 max-w-xs truncate">
-                              {p.description}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6 text-gray-900 font-medium">
-                        ${p.price}
-                      </td>
-                      <td className="py-4 px-6">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-bold ${
-                            p.countInStock > 0
+                        </td>
+                        <td className="py-4 px-6 text-gray-900 font-medium">
+                          ${p.price}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-bold ${p.countInStock > 0
                               ? "bg-green-100 text-green-700"
                               : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {p.countInStock > 0
-                            ? `${p.countInStock} in stock`
-                            : "Out of stock"}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 text-right">
-                        <div className="flex items-center justify-end space-x-2">
-                          <button
-                            onClick={() => handleEditClick(p)}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Edit Product"
+                              }`}
                           >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProduct(p._id)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete Product"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            {p.countInStock > 0
+                              ? `${p.countInStock} in stock`
+                              : "Out of stock"}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-right">
+                          <div className="flex items-center justify-end space-x-2">
+                            <button
+                              onClick={() => handleEditClick(p)}
+                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Edit Product"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProduct(p._id)}
+                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete Product"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                   {products.length === 0 && (
                     <tr>
                       <td
@@ -996,6 +1053,45 @@ const AdminDashboard = () => {
                   )}
                 </tbody>
               </table>
+              {products.length > 0 && (
+                <div className="flex items-center justify-between p-4 border-t border-gray-100">
+                  <p className="text-sm text-gray-500">
+                    Showing {(productsPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
+                    {Math.min(
+                      productsPage * ITEMS_PER_PAGE,
+                      products.length
+                    )}{" "}
+                    of {products.length} products
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        setProductsPage((p) => Math.max(1, p - 1))
+                      }
+                      disabled={productsPage === 1}
+                      className="p-1 px-2 border rounded hover:bg-gray-100 disabled:opacity-50"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <span className="px-2 py-1 text-sm font-medium">
+                      Page {productsPage}
+                    </span>
+                    <button
+                      onClick={() =>
+                        setProductsPage((p) =>
+                          p * ITEMS_PER_PAGE < products.length ? p + 1 : p
+                        )
+                      }
+                      disabled={
+                        productsPage * ITEMS_PER_PAGE >= products.length
+                      }
+                      className="p-1 px-2 border rounded hover:bg-gray-100 disabled:opacity-50"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1041,8 +1137,8 @@ const AdminDashboard = () => {
                             u.role === "admin"
                               ? "bg-purple-50 text-purple-700 ring-purple-600/20"
                               : u.role === "delivery_boy"
-                              ? "bg-indigo-50 text-indigo-700 ring-indigo-600/20"
-                              : "bg-gray-50 text-gray-600 ring-gray-500/10"
+                                ? "bg-indigo-50 text-indigo-700 ring-indigo-600/20"
+                                : "bg-gray-50 text-gray-600 ring-gray-500/10"
                           )}
                         >
                           {u.role.toUpperCase()}
