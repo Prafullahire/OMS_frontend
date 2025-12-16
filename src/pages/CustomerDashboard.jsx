@@ -171,32 +171,52 @@ const CustomerDashboard = () => {
                             All Available Products
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {products.map(product => (
-                                <div key={product._id} className="card group hover:shadow-lg hover:shadow-orange-500/10 transition-all duration-300 flex flex-col h-full overflow-hidden border-orange-100/50">
-                                    <div className="aspect-video bg-gray-50 relative overflow-hidden flex items-center justify-center">
-                                        {product.imageUrl ? (
-                                            <img src={getImageUrl(product.imageUrl)} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                        ) : (
-                                            <Box className="w-12 h-12 text-gray-300" />
-                                        )}
-                                        <div className="absolute top-2 right-2">
-                                            <span className="px-2 py-1 bg-white/90 backdrop-blur text-gray-800 text-xs font-bold rounded-lg shadow-sm border border-orange-100">
-                                                ${product.price}
-                                            </span>
+                            {products.map(product => {
+                                const isOutOfStock = product.countInStock === 0;
+                                return (
+                                    <div key={product._id} className="card group hover:shadow-lg hover:shadow-orange-500/10 transition-all duration-300 flex flex-col h-full overflow-hidden border-orange-100/50">
+                                        <div className="aspect-video bg-gray-50 relative overflow-hidden flex items-center justify-center">
+                                            {product.imageUrl ? (
+                                                <img src={getImageUrl(product.imageUrl)} alt={product.name} className={clsx("w-full h-full object-cover group-hover:scale-105 transition-transform duration-500", isOutOfStock && "opacity-50 grayscale")} />
+                                            ) : (
+                                                <Box className="w-12 h-12 text-gray-300" />
+                                            )}
+                                            <div className="absolute top-2 right-2 flex flex-col items-end gap-2">
+                                                <span className="px-2 py-1 bg-white/90 backdrop-blur text-gray-800 text-xs font-bold rounded-lg shadow-sm border border-orange-100">
+                                                    ${product.price}
+                                                </span>
+                                                {isOutOfStock && (
+                                                    <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-lg shadow-sm border border-red-200">
+                                                        Out of Stock
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="p-4 flex flex-col flex-1">
+                                            <h3 className="font-bold text-lg text-gray-800 mb-1 group-hover:text-orange-600 transition-colors">{product.name}</h3>
+                                            <p className="text-gray-500 text-sm mb-4 line-clamp-2 flex-1">{product.description}</p>
+                                            <button
+                                                onClick={() => addToCart(product)}
+                                                disabled={isOutOfStock}
+                                                className={clsx(
+                                                    "w-full py-2 font-medium rounded-lg transition-all duration-200 flex justify-center items-center group/btn",
+                                                    isOutOfStock
+                                                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                                        : "bg-orange-50 text-orange-700 hover:bg-orange-500 hover:text-white"
+                                                )}
+                                            >
+                                                {isOutOfStock ? (
+                                                    "Out of Stock"
+                                                ) : (
+                                                    <>
+                                                        <Plus className="w-4 h-4 mr-2 group-hover/btn:rotate-90 transition-transform" /> Add to Cart
+                                                    </>
+                                                )}
+                                            </button>
                                         </div>
                                     </div>
-                                    <div className="p-4 flex flex-col flex-1">
-                                        <h3 className="font-bold text-lg text-gray-800 mb-1 group-hover:text-orange-600 transition-colors">{product.name}</h3>
-                                        <p className="text-gray-500 text-sm mb-4 line-clamp-2 flex-1">{product.description}</p>
-                                        <button
-                                            onClick={() => addToCart(product)}
-                                            className="w-full py-2 bg-orange-50 text-orange-700 font-medium rounded-lg hover:bg-orange-500 hover:text-white transition-all duration-200 flex justify-center items-center group/btn"
-                                        >
-                                            <Plus className="w-4 h-4 mr-2 group-hover/btn:rotate-90 transition-transform" /> Add to Cart
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 )}

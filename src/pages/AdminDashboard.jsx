@@ -383,7 +383,7 @@ const AdminDashboard = () => {
             <div className="flex items-center space-x-2">
               <Box className="w-6 h-6 text-orange-600" />
               <span className="text-xl font-bold text-gray-800">
-                AdminPanel
+                OMS
               </span>
             </div>
             <button
@@ -439,9 +439,7 @@ const AdminDashboard = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 overflow-y-auto w-full pt-16 lg:pt-8">
-        {/* Logistics Modal */}
         {showLogisticsModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-scaleIn">
