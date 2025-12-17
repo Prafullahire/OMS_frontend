@@ -19,9 +19,6 @@ const Login = () => {
                 navigate('/admin');
             } else if (user.role === 'customer' || user.role === 'delivery_boy') {
                 navigate('/dashboard');
-            } else {
-                console.warn("User logged in but role is unknown or missing:", user);
-                // Optional: logout() if you want to force re-login
             }
         }
     }, [user, navigate]);
@@ -29,30 +26,24 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validate required fields
+        if (!email.trim() && !password.trim()) {
+            toast.error('Please enter email and password.', { position: "top-right", autoClose: 3000 });
+            return;
+        }
+
         if (!email.trim()) {
-            toast.error('Please enter your email address.', {
-                position: "top-right",
-                autoClose: 3000,
-            });
+            toast.error('Please enter your email address.', { position: "top-right", autoClose: 3000 });
+            return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            toast.error('Please enter a valid email address.', { position: "top-right", autoClose: 3000 });
             return;
         }
 
         if (!password.trim()) {
-            toast.error('Please enter your password.', {
-                position: "top-right",
-                autoClose: 3000,
-            });
-            return;
-        }
-
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            toast.error('Please enter a valid email address.', {
-                position: "top-right",
-                autoClose: 3000,
-            });
+            toast.error('Please enter your password.', { position: "top-right", autoClose: 3000 });
             return;
         }
 
@@ -70,9 +61,7 @@ const Login = () => {
                 navigate('/dashboard');
             }
         } catch (error) {
-            // Handle specific error messages
             const errorMessage = error.response?.data?.message;
-
             if (errorMessage === 'Invalid credentials' || errorMessage === 'User not found') {
                 toast.error('Invalid email or password. Please try again.', {
                     position: "top-right",
@@ -124,7 +113,7 @@ const Login = () => {
                     <p className="text-gray-500">Sign in to manage your orders</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                         <input
@@ -133,7 +122,6 @@ const Login = () => {
                             placeholder="you@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            required
                         />
                     </div>
                     <div>
@@ -144,7 +132,6 @@ const Login = () => {
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            required
                         />
                     </div>
                     <div className="flex justify-end">

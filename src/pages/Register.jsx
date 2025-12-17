@@ -132,7 +132,7 @@ const Register = () => {
                     <p className="text-gray-500">Join us to start ordering</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                         <input
@@ -141,7 +141,6 @@ const Register = () => {
                             placeholder="John Doe"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            required
                         />
                     </div>
                     <div>
@@ -152,7 +151,6 @@ const Register = () => {
                             placeholder="you@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            required
                         />
                     </div>
                     <div>
@@ -163,7 +161,6 @@ const Register = () => {
                             placeholder="Create a strong password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            required
                         />
                     </div>
 
@@ -188,7 +185,6 @@ const Register = () => {
                                 placeholder="+1 234 567 890"
                                 value={phoneNumber}
                                 onChange={(e) => setPhoneNumber(e.target.value)}
-                                required
                             />
                         </div>
                     </div>
@@ -200,7 +196,6 @@ const Register = () => {
                             placeholder="Your full address..."
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
-                            required
                         />
                     </div>
 
