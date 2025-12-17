@@ -10,6 +10,13 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // OTP Login States
+    const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'otp'
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [otp, setOtp] = useState('');
+    const [isOtpSent, setIsOtpSent] = useState(false);
+
     const { login, user } = useContext(AuthContext);
     const navigate = useNavigate();
 
@@ -23,9 +30,66 @@ const Login = () => {
         }
     }, [user, navigate]);
 
+    const handleSendOtp = async () => {
+        if (!phoneNumber.trim()) {
+            toast.error('Please enter your phone number.', { position: "top-right", autoClose: 3000 });
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await API.post('/auth/send-otp', { phoneNumber });
+            setIsOtpSent(true);
+            toast.success('OTP sent successfully! Valid for 3 minutes.');
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to send OTP.', { position: "top-right", autoClose: 3000 });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleOtpLogin = async () => {
+        if (!otp.trim()) {
+            toast.error('Please enter the OTP.', { position: "top-right", autoClose: 3000 });
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const { data } = await API.post('/auth/login-otp', { phoneNumber, otp });
+            login(data.token);
+            toast.success(`Welcome back, ${data.name}! Login successful.`, {
+                position: "top-right",
+                autoClose: 3000,
+            });
+            if (data.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/dashboard');
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Login failed. Invalid or expired OTP.', {
+                position: "top-right",
+                autoClose: 3000,
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (loginMethod === 'otp') {
+            if (!isOtpSent) {
+                await handleSendOtp();
+            } else {
+                await handleOtpLogin();
+            }
+            return;
+        }
+
+        // Email Login Logic
         if (!email.trim() && !password.trim()) {
             toast.error('Please enter email and password.', { position: "top-right", autoClose: 3000 });
             return;
@@ -113,32 +177,89 @@ const Login = () => {
                     <p className="text-gray-500">Sign in to manage your orders</p>
                 </div>
 
+                <div className="flex space-x-2 mb-6 p-1 bg-gray-100 rounded-lg">
+                    <button
+                        type="button"
+                        className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${loginMethod === 'email' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        onClick={() => setLoginMethod('email')}
+                    >
+                        Email & Password
+                    </button>
+                    <button
+                        type="button"
+                        className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${loginMethod === 'otp' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        onClick={() => setLoginMethod('otp')}
+                    >
+                        Mobile OTP
+                    </button>
+                </div>
+
                 <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                        <input
-                            type="email"
-                            className="input-field"
-                            placeholder="you@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                        <input
-                            type="password"
-                            className="input-field"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
-                    <div className="flex justify-end">
-                        <Link to="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-700">
-                            Forgot Password?
-                        </Link>
-                    </div>
+                    {loginMethod === 'email' ? (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                <input
+                                    type="email"
+                                    className="input-field"
+                                    placeholder="you@example.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                <input
+                                    type="password"
+                                    className="input-field"
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex justify-end">
+                                <Link to="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-700">
+                                    Forgot Password?
+                                </Link>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                <input
+                                    type="tel"
+                                    className="input-field"
+                                    placeholder="+1 234 567 890"
+                                    value={phoneNumber}
+                                    onChange={(e) => setPhoneNumber(e.target.value)}
+                                    disabled={isOtpSent}
+                                />
+                            </div>
+                            {isOtpSent && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Enter OTP</label>
+                                    <input
+                                        type="text"
+                                        className="input-field text-center tracking-widest text-lg"
+                                        placeholder="000000"
+                                        value={otp}
+                                        onChange={(e) => setOtp(e.target.value)}
+                                        maxLength={6}
+                                    />
+                                    <div className="mt-2 text-right">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsOtpSent(false)}
+                                            className="text-xs text-orange-600 hover:underline"
+                                        >
+                                            Change Number / Resend
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
                     <button
                         type="submit"
                         className="w-full btn-primary py-2.5 text-lg shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
@@ -150,10 +271,10 @@ const Login = () => {
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                Signing in...
+                                {loginMethod === 'email' ? 'Signing in...' : (isOtpSent ? 'Verifying...' : 'Sending OTP...')}
                             </>
                         ) : (
-                            'Sign In'
+                            loginMethod === 'email' ? 'Sign In' : (isOtpSent ? 'Verify & Login' : 'Send OTP')
                         )}
                     </button>
                 </form>
